@@ -1,3 +1,4 @@
+package org.clas.band.FirstSteps;
 import java.io.Reader;
 
 import org.jlab.groot.data.H1F;
@@ -13,19 +14,10 @@ import org.jlab.clas.physics.*;
 
 import org.jlab.io.evio.*;
 
-import org.jlab.rec.band.constants.Parameters;
-import org.jlab.rec.band.hit.BandHit;
-import org.omg.CORBA.PRIVATE_MEMBER;
-
-import com.sun.javafx.runtime.SystemProperties;
-
-import jdk.internal.dynalink.beans.StaticClass;
-import sun.security.krb5.internal.crypto.crc32;
-
 import java.util.ArrayList;
 import java.util.Scanner;
 
-public class code {
+public class rga_test {
 	
 	// =========================================================================================================
 	public static void main(String[] args) {
@@ -50,7 +42,7 @@ public class code {
 		// ----------------------------------------------------------------------------------
 		// Opening HIPO file
 		HipoReader reader = new HipoReader();
-		String dataFile = "../../../data/cooked/rga/out_clas_003842.evio.295.hipo"; // target lH2
+		String dataFile = "/Users/efrainsegarra/Documents/band/prod_data/clas_006194.evio.00037.hipo"; // target lH2
 		reader.open(dataFile);
 		 GenericKinematicFitter fitter = new GenericKinematicFitter(Ebeam);
 	
