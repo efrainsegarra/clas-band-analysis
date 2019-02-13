@@ -20,7 +20,7 @@ import java.util.Scanner;
 public class rga_test {
 	
 	// =========================================================================================================
-	public static void main(String[] args) {
+	public static void main(String[] args){		
 		
 		double Ebeam = 6.4;//GeV
 		double mp = 0.93827; //GeV
