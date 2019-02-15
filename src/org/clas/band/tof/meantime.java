@@ -66,10 +66,14 @@ public class meantime {
 			while(reader.hasNext()){
 				HipoEvent event = (HipoEvent) reader.readNextEvent();
 	
-				if(		(event.hasGroup("BAND::hits"))&&
+				if(		(event.hasGroup("REC::Particle"))&&
+						(event.hasGroup("REC::Calorimeter"))&&
+						(event.hasGroup("BAND::hits"))&&
 						(event.hasGroup("RUN::rf"))
 						){
 					
+					HipoGroup bank_particle    = event.getGroup("REC::Particle"   );
+					HipoGroup bank_calorimeter = event.getGroup("REC::Calorimeter");
 					HipoGroup rfBank = event.getGroup("RUN::rf");
 					
 					double trf = 0.0;
@@ -78,6 +82,45 @@ public class meantime {
 							trf = rfBank.getNode("time").getFloat(rfIdx);
 						}
 					}
+					
+					double epx = bank_particle.getNode("px").getFloat(0);		// electron momentum x-component [GeV]
+					double epy = bank_particle.getNode("py").getFloat(0);		// electron momentum y-component [GeV]
+					double epz = bank_particle.getNode("pz").getFloat(0);		// electron momentum z-component [GeV]
+					double evx = bank_particle.getNode("vx").getFloat(0);		// electron vertex x coordinate [cm]
+					double evy = bank_particle.getNode("vy").getFloat(0);		// electron vertex y coordinate [cm]
+					double evz = bank_particle.getNode("vz").getFloat(0);		// electron vertex z coordinate [cm]
+					double Ee = bank_calorimeter.getNode("energy").getFloat(0);	// Electron energy from calorimeter [GeV]
+
+					double ep = Math.sqrt(epx*epx + epy*epy + epz*epz);			// electron momentum magnitude [GeV]
+					double th_e = Math.acos(epz/ep);							// electron theta [rad]
+					double Q2 = 4*ep*Ebeam*Math.pow(Math.sin(th_e/2.),2);		// Q-squared [GeV^2]
+					double nu = Ebeam - ep;										// Transfer energy [GeV]
+					double W2 = mtar*mtar-Q2+2*nu*mtar;							// Invariant mass ^2 [GeV]
+					double xB = Q2/2./mp/nu;									// Bjorken-x
+
+					// Transfer variables
+					double qx = - epx;
+					double qy = - epy;
+					double qz = Ebeam - epz;
+
+					// Only keep events for which the first particle is an electron
+					int pid0 = bank_particle.getNode("pid").getInt(0);
+					int chr0 = bank_particle.getNode("charge").getInt(0);
+					double chi2pid = bank_particle.getNode("chi2pid").getFloat(0);
+					if(     (pid0!=11            )||
+							(chr0!=-1            )||
+							(chi2pid>=cut_chi2pid)||
+							(ep<=cut_ep          )||
+							(ep>=Ebeam           )||
+							(evz>cut_max_vz      )||
+							(evz<cut_min_vz      )||
+							(Math.sqrt(W2)<=cut_W)
+							) continue;
+
+
+					
+				
+					
 					
 					
 					HipoGroup band_hits    = event.getGroup("BAND::hits");
