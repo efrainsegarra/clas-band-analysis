@@ -41,14 +41,14 @@ public class meantime {
 		
 		// ----------------------------------------------------------------------------------
 		// Declaring histograms
-		H1F h1_meantime_fadc = new H1F("h1_meantime_fadc","",50,0,500); 	PrettyH1F(h1_meantime_fadc ,"(L+R)/2 for FADC"  ,"Counts",1);
-		H1F h1_meantime_tdc  = new H1F("h1_meantime_tdc","",50,400,900); 	PrettyH1F(h1_meantime_tdc ,"(L+R)/2 for TDC"  ,"Counts",1);
+		H1F h1_meantime_fadc = new H1F("h1_meantime_fadc","",250,0,500); 	PrettyH1F(h1_meantime_fadc ,"(L+R)/2 for FADC"  ,"Counts",1);
+		H1F h1_meantime_tdc  = new H1F("h1_meantime_tdc","",250,400,900); 	PrettyH1F(h1_meantime_tdc ,"(L+R)/2 for TDC"  ,"Counts",1);
 		H1F h1_tdiff_fadc = new H1F("h1_tdiff_fadc","",100,-40,40); 		PrettyH1F(h1_tdiff_fadc ,"L-R for FADC"  ,"Counts",1);
 		H1F h1_tdiff_tdc  = new H1F("h1_tdiff_tdc","",100,-40,40);			PrettyH1F(h1_tdiff_tdc ,"L-R for TDC"  ,"Counts",1);
 		H1F h1_adcL = new H1F("h1_adcL","",1000,0,30000);					PrettyH1F(h1_adcL ,"L ADC"  ,"Counts",1);
 		H1F h1_adcR = new H1F("h1_adcR","",1000,0,30000);					PrettyH1F(h1_adcR ,"R ADC"  ,"Counts",1);
-		H1F h1_ToF_fadc = new H1F("h1_ToF_fadc","",60,-100,500); 			PrettyH1F(h1_ToF_fadc ,"(L+R)/2 - RF for FADC"  ,"Counts",1);
-		H1F h1_ToF_tdc = new H1F("h1_ToF_tdc","",60,300,900); 				PrettyH1F(h1_ToF_tdc ,"(L+R)/2 - RF for TDC"  ,"Counts",1);
+		H1F h1_ToF_fadc = new H1F("h1_ToF_fadc","",300,-100,500); 			PrettyH1F(h1_ToF_fadc ,"(L+R)/2 - RF for FADC"  ,"Counts",1);
+		H1F h1_ToF_tdc = new H1F("h1_ToF_tdc","",300,300,900); 				PrettyH1F(h1_ToF_tdc ,"(L+R)/2 - RF for TDC"  ,"Counts",1);
 
 		
 		// ----------------------------------------------------------------------------------
@@ -141,7 +141,7 @@ public class meantime {
 						float adcLcorr = band_hits.getNode("adcLcorr").getFloat(hit);
 						float adcRcorr = band_hits.getNode("adcRcorr").getFloat(hit);
 						
-						if( adcLcorr < 2000 || adcRcorr < 2000 ) continue;
+						if( adcLcorr < 4000 || adcRcorr < 4000 ) continue;
 						/*
 						float tFadcLcorr = band_hits.getNode().getFloat("tFadcLcorr", hit);
 						float tFadcRcorr = band_hits.getNode().getFloat("tFadcRcorr", hit);
@@ -159,7 +159,7 @@ public class meantime {
 						float uz = band_hits.getFloat("uz", hit);
 						*/				
 						
-						if( sector != 2 || layer != 5 ) continue;
+						if( sector == 3 || sector == 4 ) continue;
 						
 						// Fill histograms
 						h1_meantime_fadc.fill(meantimeFadc);
