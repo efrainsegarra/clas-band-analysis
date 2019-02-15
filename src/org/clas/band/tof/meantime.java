@@ -17,12 +17,15 @@ import org.jlab.io.evio.*;
 import org.jlab.io.hipo.HipoDataSource;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Scanner;
 
 public class meantime {
 	
 	// =========================================================================================================
 	public static void main(String[] args){		
+		
+		
 		
 		double Ebeam = 10.6;//GeV
 		double mp = 0.93827; //GeV
@@ -51,83 +54,88 @@ public class meantime {
 		// ----------------------------------------------------------------------------------
 		// Opening HIPO file
 		HipoReader  reader = new HipoReader();
-		String dataFile = "/Users/efrainsegarra/Documents/band/prod_data/out_clas_006164.evio.00000.hipo"; // target lH2
-		reader.open(dataFile);
-		GenericKinematicFitter fitter = new GenericKinematicFitter(Ebeam);
-	
-		// ----------------------------------------------------------------------------------
-		// Loop over events and print them on the screen
-		while(reader.hasNext()){
-			HipoEvent event = (HipoEvent) reader.readNextEvent();
+		for(String arg: args) {
+			String dataFile = arg;
 
-			if(		(event.hasGroup("BAND::hits"))&&
-					(event.hasGroup("RUN::rf"))
-					){
-				
-				HipoGroup rfBank = event.getGroup("RUN::rf");
-				
-				double trf = 0.0;
-				for (int rfIdx = 0; rfIdx < rfBank.getNode("id").getDataSize(); rfIdx++) {
-					if (rfBank.getNode("id").getShort(rfIdx) == 1) {
-						trf = rfBank.getNode("time").getFloat(rfIdx);
+			//String dataFile = "/Users/efrainsegarra/Documents/band/prod_data/out_clas_006164.evio.00000.hipo"; // target lH2
+			reader.open(dataFile);
+			GenericKinematicFitter fitter = new GenericKinematicFitter(Ebeam);
+		
+			// ----------------------------------------------------------------------------------
+			// Loop over events and print them on the screen
+			while(reader.hasNext()){
+				HipoEvent event = (HipoEvent) reader.readNextEvent();
+	
+				if(		(event.hasGroup("BAND::hits"))&&
+						(event.hasGroup("RUN::rf"))
+						){
+					
+					HipoGroup rfBank = event.getGroup("RUN::rf");
+					
+					double trf = 0.0;
+					for (int rfIdx = 0; rfIdx < rfBank.getNode("id").getDataSize(); rfIdx++) {
+						if (rfBank.getNode("id").getShort(rfIdx) == 1) {
+							trf = rfBank.getNode("time").getFloat(rfIdx);
+						}
 					}
-				}
+					
+					
+					HipoGroup band_hits    = event.getGroup("BAND::hits");
+					
 				
-				
-				HipoGroup band_hits    = event.getGroup("BAND::hits");
-				
-			
-				int nHits = band_hits.getNode("id").getDataSize();
-				for(int hit = 0; hit < nHits; hit++) {
-					int sector = 	(int)band_hits.getNode("sector").getByte(hit);
-					int layer = 	(int)band_hits.getNode("layer").getByte(hit);
-					int component = (int)band_hits.getNode("component").getShort(hit);
+					int nHits = band_hits.getNode("id").getDataSize();
+					for(int hit = 0; hit < nHits; hit++) {
+						int sector = 	(int)band_hits.getNode("sector").getByte(hit);
+						int layer = 	(int)band_hits.getNode("layer").getByte(hit);
+						int component = (int)band_hits.getNode("component").getShort(hit);
+						
+						float meantimeTdc	= band_hits.getNode("meantimeTdc").getFloat(hit);
+						float meantimeFadc 	= band_hits.getNode("meantimeFadc").getFloat(hit);
+						float difftimeTdc 	= band_hits.getNode("difftimeTdc").getFloat(hit);
+						float difftimeFadc 	= band_hits.getNode("difftimeFadc").getFloat(hit);
+						
+						
+						float adcLcorr = band_hits.getNode("adcLcorr").getFloat(hit);
+						float adcRcorr = band_hits.getNode("adcRcorr").getFloat(hit);
+						
+						if( adcLcorr < 2000 || adcRcorr < 2000 ) continue;
+						/*
+						float tFadcLcorr = band_hits.getNode().getFloat("tFadcLcorr", hit);
+						float tFadcRcorr = band_hits.getNode().getFloat("tFadcRcorr", hit);
+						
+						
+						float tTdcLcorr = band_hits.getFloat("tTdcLcorr", hit);
+						float tTdcRcorr = band_hits.getFloat("tTdcRcorr", hit);
+						
+						float x = band_hits.getFloat("x", hit);
+						float y = band_hits.getFloat("y", hit);
+						float z = band_hits.getFloat("z", hit);
+						
+						float ux = band_hits.getFloat("ux", hit);
+						float uy = band_hits.getFloat("uy", hit);
+						float uz = band_hits.getFloat("uz", hit);
+						*/				
+						
+						if( sector != 2 || layer != 5 ) continue;
+						
+						// Fill histograms
+						h1_meantime_fadc.fill(meantimeFadc);
+						h1_meantime_tdc.fill(meantimeTdc);
+						h1_tdiff_fadc.fill(difftimeFadc);
+						h1_tdiff_tdc.fill(difftimeTdc);
+						h1_adcL.fill(adcLcorr);
+						h1_adcR.fill(adcRcorr);
+						h1_ToF_fadc.fill(meantimeFadc-trf);
+						h1_ToF_tdc.fill(meantimeTdc-trf);
+						
+						
+						
+					}// end loop over hits in event
 					
-					float meantimeTdc	= band_hits.getNode("meantimeTdc").getFloat(hit);
-					float meantimeFadc 	= band_hits.getNode("meantimeFadc").getFloat(hit);
-					float difftimeTdc 	= band_hits.getNode("difftimeTdc").getFloat(hit);
-					float difftimeFadc 	= band_hits.getNode("difftimeFadc").getFloat(hit);
-					
-					
-					float adcLcorr = band_hits.getNode("adcLcorr").getFloat(hit);
-					float adcRcorr = band_hits.getNode("adcRcorr").getFloat(hit);
-					
-					if( adcLcorr < 2000 || adcRcorr < 2000 ) continue;
-					/*
-					float tFadcLcorr = band_hits.getNode().getFloat("tFadcLcorr", hit);
-					float tFadcRcorr = band_hits.getNode().getFloat("tFadcRcorr", hit);
-					
-					
-					float tTdcLcorr = band_hits.getFloat("tTdcLcorr", hit);
-					float tTdcRcorr = band_hits.getFloat("tTdcRcorr", hit);
-					
-					float x = band_hits.getFloat("x", hit);
-					float y = band_hits.getFloat("y", hit);
-					float z = band_hits.getFloat("z", hit);
-					
-					float ux = band_hits.getFloat("ux", hit);
-					float uy = band_hits.getFloat("uy", hit);
-					float uz = band_hits.getFloat("uz", hit);
-					*/				
-					
-					if( sector != 2 || layer != 5 ) continue;
-					
-					// Fill histograms
-					h1_meantime_fadc.fill(meantimeFadc);
-					h1_meantime_tdc.fill(meantimeTdc);
-					h1_tdiff_fadc.fill(difftimeFadc);
-					h1_tdiff_tdc.fill(difftimeTdc);
-					h1_adcL.fill(adcLcorr);
-					h1_adcR.fill(adcRcorr);
-					h1_ToF_fadc.fill(meantimeFadc-trf);
-					h1_ToF_tdc.fill(meantimeTdc-trf);
-					
-					
-					
-				}// end loop over hits in event
-				
-			}//end bank if
-		}// end file
+				}//end bank if
+			}// end file
+		
+		}//end loop over all files
 		
 		TCanvas c0 = new TCanvas("c0", 800, 600);
 		c0.divide(2, 4);
