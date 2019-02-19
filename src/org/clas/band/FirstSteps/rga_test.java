@@ -27,10 +27,8 @@ public class rga_test {
 
 		// ----------------------------------------------------------------------------------
 		// Useful variables
-		double Ebeam = 6.4; //GeV
-		Vector3 v3_beam = new Vector3(0,0,Ebeam);
-		double mp = 0.93827; //GeV
-		double mtar = mp;
+		double mp      = 0.93827; //GeV
+		double mtar    = mp;
 		double rad2deg = 180./3.14159;
 
 		// ----------------------------------------------------------------------------------
@@ -42,11 +40,13 @@ public class rga_test {
 		double cut_W       =     0; //GeV
 		double cut_uvw     =    15; //cm
 		double cut_Epcal   = 0.060; //GeV (60 MeV)
+		double cut_tof_e   =    10; //ns
 
 		// ----------------------------------------------------------------------------------
 		// Declaring histograms
 		// 1D histograms
 		H1F h1_e_vz  = new H1F("h1_e_vz"  ,"h1_e_vz"  ,100, -50, 50);	PrettyH1F(h1_e_vz  ,"v_{z} [cm]"           ,"Counts",4);
+		H1F h1_e_tof = new H1F("h1_e_tof" ,"h1_e_tof" ,100,  20, 27);	PrettyH1F(h1_e_tof ,"electron TOF [ns]"    ,"Counts",4);
 
 		H1F h1_e_px  = new H1F("h1_e_px"  ,"h1_e_px"  ,100,  -2,  2);	PrettyH1F(h1_e_px  ,"electron p_{x} [GeV]" ,"Counts",4);
 		H1F h1_e_py  = new H1F("h1_e_py"  ,"h1_e_py"  ,100,  -2,  2);	PrettyH1F(h1_e_py  ,"electron p_{y} [GeV]" ,"Counts",4);
@@ -75,7 +75,7 @@ public class rga_test {
 		H1F h1_pmy   = new H1F("h1_pmy"   ,"h1_pmy"   ,100,  -2,  2);	PrettyH1F(h1_pmy   ,"Pmy [GeV]"            ,"Counts",4);
 		H1F h1_pmz   = new H1F("h1_pmz"   ,"h1_pmz"   ,100,  -3,  3);	PrettyH1F(h1_pmz   ,"Pmz [GeV]"            ,"Counts",4);
 		H1F h1_Mmiss = new H1F("h1_Mmiss" ,"h1_Mmiss" ,100,  -1,  2);	PrettyH1F(h1_Mmiss ,"m_{miss} [GeV]"       ,"Counts",4);
-		
+
 		H1F h1_W     = new H1F("h1_W"     ,"h1_W"     ,100,   0,  4);	PrettyH1F(h1_W     ,"W [GeV]"              ,"Counts",4);
 		H1F h1_xB    = new H1F("h1_xB"    ,"h1_xB"    ,100,   0,  4);	PrettyH1F(h1_xB    ,"x_B"                  ,"Counts",4);
 
@@ -88,20 +88,40 @@ public class rga_test {
 		H2F h2_p_th_phi = new H2F("h2_p_th_phi" ,"h2_p_th_phi" ,100,-190,190,100,  0, 80);
 		H2F h2_beta_p_0 = new H2F("h2_beta_p_0" ,"h2_beta_p_0" ,100,0   ,  4,100,0.1,1.1);
 		H2F h2_beta_p_1 = new H2F("h2_beta_p_1" ,"h2_beta_p_1" ,100,0   ,  4,100,0.1,1.1);
+		H2F h2_e_vz_phi = new H2F("h2_e_vz_phi" ,"h2_e_vz_phi" ,100,-190,190,100,-50, 50);
+		H2F h2_p_vz_phi = new H2F("h2_p_vz_phi" ,"h2_p_vz_phi" ,100,-190,190,100,-50, 50);
+		H2F h2_e_tof_p  = new H2F("h2_e_tof_p"  ,"h2_e_tof_p"  ,100,1   ,  7,100, 20, 27);
+		H2F h2_p_dtT_p_0= new H2F("h2_p_dtT_p_0","h2_p_dtT_p_0",100,0   ,  4,100,- 4,  4);
+		H2F h2_p_dtT_p_1= new H2F("h2_p_dtT_p_1","h2_p_dtT_p_1",100,0   ,  4,100,- 4,  4);
 
-		PrettyH2F(h2_e_Ep_p_0,"p_{e}"       ,"E_{e}/p_{e}"   );
-		PrettyH2F(h2_e_Ep_p_1,"p_{e}"       ,"E_{e}/p_{e}"   );
-		PrettyH2F(h2_e_th_phi,"#phi_e [deg]","#theta_e [deg]");
-		PrettyH2F(h2_p_th_phi,"#phi_p [deg]","#theta_p [deg]");
-		PrettyH2F(h2_beta_p_0,"p [GeV]"     ,"#beta"         );
-		PrettyH2F(h2_beta_p_1,"p [GeV]"     ,"#beta"         );
+		PrettyH2F(h2_e_Ep_p_0 ,"p_{e} [GeV]" ,"E_{e}/p_{e}"      );
+		PrettyH2F(h2_e_Ep_p_1 ,"p_{e} [GeV]" ,"E_{e}/p_{e}"      );
+		PrettyH2F(h2_e_th_phi ,"#phi_e [deg]","#theta_e [deg]"   );
+		PrettyH2F(h2_p_th_phi ,"#phi_p [deg]","#theta_p [deg]"   );
+		PrettyH2F(h2_beta_p_0 ,"p [GeV]"     ,"#beta"            );
+		PrettyH2F(h2_beta_p_1 ,"p [GeV]"     ,"#beta"            );
+		PrettyH2F(h2_e_vz_phi ,"#phi_e [deg]","e v_{z} [cm]"     );
+		PrettyH2F(h2_p_vz_phi ,"#phi_p [deg]","p v_{z} [cm]"     );
+		PrettyH2F(h2_e_tof_p  ,"p_{e} [GeV]" ,"electron TOF [ns]");
+		PrettyH2F(h2_p_dtT_p_0,"p_{e} [GeV]" ,"p #Delta t [ns]"  );
+		PrettyH2F(h2_p_dtT_p_1,"p_{e} [GeV]" ,"p #Delta t [ns]"  );
 		// ----------------------------------------------------------------------------------
-		// Opening HIPO file
+		// Opening input HIPO file
 		HipoReader reader = new HipoReader();
-		//String dataFile = "/Users/efrainsegarra/Documents/band/prod_data/clas_006194.evio.00037.hipo"; // target lH2
-		String dataFile = "/Users/Reynier/WORK/CLAS12/data/cooked/rga/out_clas_003842.evio.295.hipo"; // target lH2
+
+		// RGA example
+		//String dataFile = "/Users/Reynier/WORK/CLAS12/data/cooked/rga/out_clas_003842.evio.295.hipo"; // target lH2
+		//double Ebeam = 6.4; //GeV
+
+		// RGB example
+		String dataFile = "/Users/Reynier/WORK/CLAS12/data/cooked/rgb/out_clas_006164.evio.00266.hipo"; // target deuterium
+		double Ebeam = 10.6; //GeV
+
+
 		reader.open(dataFile);
 
+		// ----------------------------------------------------------------------------------
+		// Creating output HIPO file
 		HipoWriter writer = reader.createWriter();
 		writer.open("/Users/Reynier/WORK/CLAS12/data/cooked/rga/filter_output.hipo");
 
@@ -115,52 +135,80 @@ public class rga_test {
 			if(event_counter%10000==0) System.out.println("event: "+event_counter);
 			event_counter++;
 
-			if(     (event.hasGroup("REC::Particle"))&&
-					(event.hasGroup("REC::Calorimeter"))
+			if(     (event.hasGroup("REC::Particle"    ))&&
+					(event.hasGroup("REC::Calorimeter" ))&&
+					(event.hasGroup("REC::Scintillator"))&&
+					(event.hasGroup("REC::Event"       ))
 					){	
 
-				HipoGroup bank_particle    = event.getGroup("REC::Particle"   );
-				HipoGroup bank_calorimeter = event.getGroup("REC::Calorimeter");
+				HipoGroup bank_particle     = event.getGroup("REC::Particle"    );
+				HipoGroup bank_calorimeter  = event.getGroup("REC::Calorimeter" );
+				HipoGroup bank_scintillator = event.getGroup("REC::Scintillator");
+				HipoGroup bank_event        = event.getGroup("REC::Event"       );
 
 				//HipoGroup rEC_event = event.getGroup("REC::Event");
-				//rEC_event.show();
 				//HipoGroup bank_FTOF = event.getGroup("FTOF::hbhits"); 
-				//bank_FTOF.show();
 
 				//bank_particle.show();
 				//bank_calorimeter.show();
+				//bank_scintillator.show();
+				//bank_event.show();
 
 				// -------------------------------------------------------------------------
 				// Electron PID from Dan Carman
 				// - (DONE)	pid=11 from EB
 				// - (DONE)	p > 2 GeV
 				// - (DONE)	p < Ebeam
-				// - 		TOF > 10 ns //(need bank 330) event.json
+				// - (DONE)	TOF > 10 ns //(need bank 330) event.json
 				// - (DONE)	vz: -15 to 10 cm
 				// - (DONE)	W > 0 GeV
-				// - (DONE-ish)		Sampling fraction +/-3sigma about E/p vs. p mean
+				// - 		Sampling fraction +/-3sigma about E/p vs. p mean
 				// - (DONE)	~15 cm fiducial cuts on U, V, W to contain full shower (need bank 332 lu, lv, lw)
 				// - (DONE)	abs(chisq PID) < 5 (goodness of PID from EB)
 				// - (DONE)	PCAL > 60 MeV (to remove min-i) (bank 332 layers 1(PCAL), 4(EC inner), 7(EC outter))
 				// -------------------------------------------------------------------------
+				// Proton PID from Dan Carman
+				// - (DONE)	pid=2212 from EB
+				// -		bank 331 status word???
+				// -		p > 0.5 GeV (need to check if we want this for QE)
+				// -		charge != 0
+				// -		p < Ebeam
+				// -		Tof > 10 ns
+				// -		abs(chi^2pid) < 5
+				// -		Delta_t < 5 ns
+				// -------------------------------------------------------------------------
 
 				// first particle variables
-				int pid0       = bank_particle.getNode("pid"    ).getInt  (0);		// electron candidate id assigned by clas
-				int chr0       = bank_particle.getNode("charge" ).getInt  (0);		// electron candidate charge
-				double chi2pid = bank_particle.getNode("chi2pid").getFloat(0);		// electron candidate goodness of PID from EB
-				double epx     = bank_particle.getNode("px"     ).getFloat(0);		// electron candidate momentum x-component [GeV]
-				double epy     = bank_particle.getNode("py"     ).getFloat(0);		// electron candidate momentum y-component [GeV]
-				double epz     = bank_particle.getNode("pz"     ).getFloat(0);		// electron candidate momentum z-component [GeV]
-				double evx     = bank_particle.getNode("vx"     ).getFloat(0);		// electron candidate vertex x coordinate [cm]
-				double evy     = bank_particle.getNode("vy"     ).getFloat(0);		// electron candidate vertex y coordinate [cm]
-				double evz     = bank_particle.getNode("vz"     ).getFloat(0);		// electron candidate vertex z coordinate [cm]
+
+				// Particle bank
+				int pid0       = bank_particle    .getNode("pid"    ).getInt  (0);		// electron candidate id assigned by clas
+				int chr0       = bank_particle    .getNode("charge" ).getInt  (0);		// electron candidate charge
+				double chi2pid = bank_particle    .getNode("chi2pid").getFloat(0);		// electron candidate goodness of PID from EB
+				double epx     = bank_particle    .getNode("px"     ).getFloat(0);		// electron candidate momentum x-component [GeV]
+				double epy     = bank_particle    .getNode("py"     ).getFloat(0);		// electron candidate momentum y-component [GeV]
+				double epz     = bank_particle    .getNode("pz"     ).getFloat(0);		// electron candidate momentum z-component [GeV]
+				double evx     = bank_particle    .getNode("vx"     ).getFloat(0);		// electron candidate vertex x coordinate [cm]
+				double evy     = bank_particle    .getNode("vy"     ).getFloat(0);		// electron candidate vertex y coordinate [cm]
+				double evz     = bank_particle    .getNode("vz"     ).getFloat(0);		// electron candidate vertex z coordinate [cm]
+
+				// Event bank
+				double t_vtx   = bank_event       .getNode("STTime" ).getFloat(0);		// event vertex time
+
+				// Scintillator bank
+				double t_e     = bank_scintillator.getNode("time"   ).getFloat(0);		// electron candidate time at FTOF
 
 				short cal_id = 0;
 				double Epcal = 0;
 				double Eecin = 0;
 				double Eecou = 0;
 
+				// Calorimeter bank
 				int nCal = bank_calorimeter.getNode("pindex").getDataSize();
+
+				double lU      = bank_calorimeter.getNode("lu"    ).getFloat(0);	// electron candidate distance on U-side [cm?]
+				double lV      = bank_calorimeter.getNode("lv"    ).getFloat(0);	// electron candidate distance on V-side [cm?]
+				double lW      = bank_calorimeter.getNode("lw"    ).getFloat(0);	// electron candidate distance on W-side [cm?]
+
 				for(int cal=0 ; cal < nCal ; cal++) {
 					cal_id = bank_calorimeter.getNode("pindex").getShort(cal);
 					int layer = bank_calorimeter.getNode("layer").getByte(cal);
@@ -170,9 +218,6 @@ public class rga_test {
 				}
 
 				double Ee      = Epcal + Eecin + Eecou;	// electron candidate energy from calorimeter [GeV]
-				double lU      = bank_calorimeter.getNode("lu"    ).getFloat(0);	// electron candidate distance on U-side [cm?]
-				double lV      = bank_calorimeter.getNode("lv"    ).getFloat(0);	// electron candidate distance on V-side [cm?]
-				double lW      = bank_calorimeter.getNode("lw"    ).getFloat(0);	// electron candidate distance on W-side [cm?]
 
 				// calculated variables
 				double ep     = Math.sqrt(epx*epx + epy*epy + epz*epz);		// electron candidate momentum magnitude [GeV]
@@ -184,6 +229,8 @@ public class rga_test {
 				double W2     = mtar*mtar-Q2+2*nu*mtar;						// Invariant mass ^2 [GeV]
 				double xB     = Q2/2./mp/nu;								// Bjorken-x
 
+				double tof_e  = t_e - t_vtx;								// electron candidate time-of-flight [ns]
+
 				// Transfer variables
 				double qx = - epx;
 				double qy = - epy;
@@ -192,6 +239,7 @@ public class rga_test {
 				// -------------------------------------------------------------------------
 				// Fill some histograms before cutting on good electrons
 				h2_e_Ep_p_0.fill(ep,Ee/ep);
+				h2_e_vz_phi.fill(rad2deg*phi_e, evz);
 
 				// -------------------------------------------------------------------------
 				// Only keep events for which the first particle is an electron
@@ -206,16 +254,18 @@ public class rga_test {
 						(lV<cut_uvw          )||
 						(lW<cut_uvw          )||
 						(Epcal<cut_Epcal     )||
-						(Math.sqrt(W2)<=cut_W)
+						(Math.sqrt(W2)<=cut_W)||
+						(tof_e<cut_tof_e     )
 						) continue;
 
 				//if(Ee/ep>0.30||Ee/ep<0.20) continue;
 
-				// QE cut
-				//if((Math.sqrt(W2)>1.097+0.1)||(Math.sqrt(W2)<1.097-0.1)) continue;
+				// -------------------------------------------------------------------------
+				// Quasi-Elastic event selection cut
 				if((xB>1+0.2)||(xB<1-0.2)) continue;
 				//if((xB>1+0.5)||(xB<1-0.5)) continue;
 
+				// -------------------------------------------------------------------------
 				// Filling electron histograms
 				h1_e_lu .fill(lU           );
 				h1_e_lv .fill(lV           );
@@ -229,10 +279,13 @@ public class rga_test {
 				h1_xB   .fill(xB           );
 				h1_e_th .fill(rad2deg*th_e );
 				h1_e_phi.fill(rad2deg*phi_e);
+				h1_e_tof.fill(tof_e        );
 
-				h2_e_Ep_p_1.fill(ep,Ee/ep);
+				h2_e_Ep_p_1.fill(ep           ,Ee/ep       );
 				h2_e_th_phi.fill(rad2deg*phi_e,rad2deg*th_e);
+				h2_e_tof_p .fill(ep           ,tof_e       );
 
+				// Saving these events in output file
 				writer.writeEvent(event);
 
 				// -------------------------------------------------------------------------
@@ -243,6 +296,7 @@ public class rga_test {
 
 				int nParticles = bank_particle.getNode("pid").getDataSize();
 				for(int par = 1; par < nParticles; par++) {
+					// Particle bank
 					int pidi      = bank_particle.getNode("pid"   ).getInt  (par);		// proton candidate id assigned by clas
 					int chri      = bank_particle.getNode("charge").getInt  (par);		// proton candidate charge
 					double beta_p = bank_particle.getNode("beta"  ).getFloat(par);		// proton candidate beta (v/c)
@@ -255,9 +309,27 @@ public class rga_test {
 
 					double pp     = Math.sqrt(ppx*ppx + ppy*ppy + ppz*ppz);		
 
-					// Fill some histograms before checking the particles are protons
-					h2_beta_p_0.fill(pp, beta_p);
+					double mSq    = pp*pp*(1-beta_p*beta_p)/(beta_p*beta_p);
+					boolean alreadyGotHit = false;
+					double t_p      = -1000;
+					double tof_p    = -1000;
+					double delta_tP = -1000;
 
+					// Scintillator bank
+					int nScin = bank_scintillator.getNode("pindex").getDataSize();
+					for(int scin = 1 ; scin < nScin ; scin++ ) {
+						int scint_id = bank_scintillator.getNode("pindex").getInt(scin);
+						if(scint_id==par&&!alreadyGotHit) {
+							alreadyGotHit=true;
+							t_p = bank_scintillator.getNode("time").getFloat(scin);
+							tof_p  = t_p - t_vtx;
+							delta_tP = tof_p*(1-Math.sqrt((pp*pp+mp*mp)/(pp*pp+mSq)));
+						}
+					}
+
+					// Fill some histograms before checking the particles are protons
+					h2_beta_p_0. fill(pp, beta_p  );
+					h2_p_dtT_p_0.fill(pp, delta_tP);
 					// ----------------------------------------------------------------------
 					// If there are protons, find the fastest one and consider that (e,e'p)X
 					// (Add proton event selection cuts below)
@@ -284,45 +356,64 @@ public class rga_test {
 					double pvy    = bank_particle.getNode("vy"    ).getFloat(tmp_fast_p_idx);		// proton candidate vertex y coordinate [cm]
 					double pvz    = bank_particle.getNode("vz"    ).getFloat(tmp_fast_p_idx);		// proton candidate vertex z coordinate [cm]
 
-					double pp     = Math.sqrt(ppx*ppx + ppy*ppy + ppz*ppz);
-					double Ep     = Math.sqrt(pp*pp+mp*mp);
-					Vector3 v3_pp = new Vector3(ppx,ppy,ppz);							// proton candidate momentum vector [GeV]		
-					double th_p   = v3_pp.theta();										// proton candidate theta [rad]
-					double phi_p  = v3_pp.phi();										// proton candidate phi [rad]
+					if(     (pidi==2212)&&
+							(chri==1   )
+							) {
 
-					double delt_vz= pvz - evz;
-					
-					// Missing momentum components
-					double pmx = ppx - qx;
-					double pmy = ppy - qy;
-					double pmz = ppz - qz;
-					double Pm = Math.sqrt(pmx*pmx + pmy*pmy + pmz*pmz);
+						double pp     = Math.sqrt(ppx*ppx + ppy*ppy + ppz*ppz);
+						double Ep     = Math.sqrt(pp*pp+mp*mp);
+						Vector3 v3_pp = new Vector3(ppx,ppy,ppz);							// proton candidate momentum vector [GeV]		
+						double th_p   = v3_pp.theta();										// proton candidate theta [rad]
+						double phi_p  = v3_pp.phi();										// proton candidate phi [rad]
 
-					// Missing mass
-					double E_mmiss = Ebeam + mtar - ep - Ep;
-					double Mmiss = Math.sqrt(E_mmiss*E_mmiss - Pm*Pm);
-					
-					h2_beta_p_1.fill(pp, beta_p);
-					h1_p_vz.fill(pvz);
-					h1_dlt_vz.fill(delt_vz);
+						double delt_vz= pvz - evz;
 
-					h1_p_px    .fill(ppx);
-					h1_p_py    .fill(ppy);
-					h1_p_pz    .fill(ppz);
-					h1_p_p     .fill(pp );
+						double mSq    = pp*pp*(1-beta_p*beta_p)/(beta_p*beta_p);
+						boolean alreadyGotHit = false;
+						double t_p      = -1000;
+						double tof_p    = -1000;
+						double delta_tP = -1000;
+						// Scintillator bank
+						int nScin = bank_scintillator.getNode("pindex").getDataSize();
+						for(int scin = 1 ; scin < nScin ; scin++ ) {
+							int scint_id = bank_scintillator.getNode("pindex").getInt(scin);
+							if(scint_id==tmp_fast_p_idx&&!alreadyGotHit) {
+								alreadyGotHit=true;
+								t_p = bank_scintillator.getNode("time").getFloat(scin);
+								tof_p  = t_p - t_vtx;
+								delta_tP = tof_p*(1-Math.sqrt((pp*pp+mp*mp)/(pp*pp+mSq)));
+							}
+						}
 
-					h1_p_th    .fill(rad2deg*th_p);
-					h1_p_phi   .fill(rad2deg*phi_p);
-					h2_p_th_phi.fill(rad2deg*phi_p, rad2deg*th_p);
+						// Missing momentum components
+						double pmx = ppx - qx;
+						double pmy = ppy - qy;
+						double pmz = ppz - qz;
+						double Pm = Math.sqrt(pmx*pmx + pmy*pmy + pmz*pmz);
 
-					// Missing momentum histograms
-					h1_pmx     .fill(pmx);
-					h1_pmy     .fill(pmy);
-					h1_pmz     .fill(pmz);
-					h1_pmiss   .fill(Pm);
-					h1_Mmiss   .fill(Mmiss);
-					
-					//writer.writeEvent(event);
+						// Missing mass
+						double E_mmiss = Ebeam + mtar - ep - Ep;
+						double Mmiss = Math.sqrt(E_mmiss*E_mmiss - Pm*Pm);
+
+						h1_p_vz    .fill(pvz          );
+						h1_dlt_vz  .fill(delt_vz      );
+						h1_p_px    .fill(ppx          );
+						h1_p_py    .fill(ppy          );
+						h1_p_pz    .fill(ppz          );
+						h1_p_p     .fill(pp           );
+						h1_p_th    .fill(rad2deg*th_p );
+						h1_p_phi   .fill(rad2deg*phi_p);
+						h1_pmx     .fill(pmx          );
+						h1_pmy     .fill(pmy          );
+						h1_pmz     .fill(pmz          );
+						h1_pmiss   .fill(Pm           );
+						h1_Mmiss   .fill(Mmiss        );
+
+						h2_p_th_phi .fill(rad2deg*phi_p, rad2deg*th_p);
+						h2_p_vz_phi .fill(rad2deg*phi_p, pvz         );
+						h2_beta_p_1 .fill(pp           , beta_p      );
+						h2_p_dtT_p_1.fill(pp           , delta_tP    );
+					}
 				}
 
 				h1_p_num.fill((double)(nProtons));
@@ -400,9 +491,24 @@ public class rga_test {
 
 		TCanvas c11 = new TCanvas("c11", 800, 600);
 		c11.draw(h1_p_num);
-		
+
 		TCanvas c12 = new TCanvas("c12", 800, 600);
 		c12.draw(h1_Mmiss);
+
+		TCanvas c13 = new TCanvas("c13", 800, 600);
+		c13.divide(2, 1);
+		c13.cd(0);	c13.draw(h2_e_vz_phi);
+		c13.cd(1);	c13.draw(h2_p_vz_phi);
+
+		TCanvas c14 = new TCanvas("c14", 800, 600);
+		c14.divide(2, 1);
+		c14.cd(0);	c14.draw(h1_e_tof  );
+		c14.cd(1);	c14.draw(h2_e_tof_p);
+
+		TCanvas c15 = new TCanvas("c15", 800, 600);
+		c15.divide(2, 1);
+		c15.cd(0);	c15.draw(h2_p_dtT_p_0);
+		c15.cd(1);	c15.draw(h2_p_dtT_p_1);
 
 	}
 	// =========================================================================================================
