@@ -27,10 +27,8 @@ public class rga_test {
 
 		// ----------------------------------------------------------------------------------
 		// Useful variables
-		double Ebeam = 6.4; //GeV
-		Vector3 v3_beam = new Vector3(0,0,Ebeam);
-		double mp = 0.93827; //GeV
-		double mtar = mp;
+		double mp      = 0.93827; //GeV
+		double mtar    = mp;
 		double rad2deg = 180./3.14159;
 
 		// ----------------------------------------------------------------------------------
@@ -88,20 +86,35 @@ public class rga_test {
 		H2F h2_p_th_phi = new H2F("h2_p_th_phi" ,"h2_p_th_phi" ,100,-190,190,100,  0, 80);
 		H2F h2_beta_p_0 = new H2F("h2_beta_p_0" ,"h2_beta_p_0" ,100,0   ,  4,100,0.1,1.1);
 		H2F h2_beta_p_1 = new H2F("h2_beta_p_1" ,"h2_beta_p_1" ,100,0   ,  4,100,0.1,1.1);
-
+		H2F h2_e_vz_phi = new H2F("h2_e_vz_phi" ,"h2_e_vz_phi" ,100,-190,190,100,-50, 50);
+		H2F h2_p_vz_phi = new H2F("h2_p_vz_phi" ,"h2_p_vz_phi" ,100,-190,190,100,-50, 50);
+		
 		PrettyH2F(h2_e_Ep_p_0,"p_{e}"       ,"E_{e}/p_{e}"   );
 		PrettyH2F(h2_e_Ep_p_1,"p_{e}"       ,"E_{e}/p_{e}"   );
 		PrettyH2F(h2_e_th_phi,"#phi_e [deg]","#theta_e [deg]");
 		PrettyH2F(h2_p_th_phi,"#phi_p [deg]","#theta_p [deg]");
 		PrettyH2F(h2_beta_p_0,"p [GeV]"     ,"#beta"         );
 		PrettyH2F(h2_beta_p_1,"p [GeV]"     ,"#beta"         );
+		PrettyH2F(h2_e_vz_phi,"#phi_e [deg]","e v_{z} [cm]"  );
+		PrettyH2F(h2_p_vz_phi,"#phi_p [deg]","p v_{z} [cm]"  );
+				
 		// ----------------------------------------------------------------------------------
-		// Opening HIPO file
+		// Opening input HIPO file
 		HipoReader reader = new HipoReader();
-		//String dataFile = "/Users/efrainsegarra/Documents/band/prod_data/clas_006194.evio.00037.hipo"; // target lH2
+		
+		// RGA example
 		String dataFile = "/Users/Reynier/WORK/CLAS12/data/cooked/rga/out_clas_003842.evio.295.hipo"; // target lH2
+		double Ebeam = 6.4; //GeV
+		
+		// RGB example
+		//String dataFile = "/Users/Reynier/WORK/CLAS12/data/cooked/rgb/out_clas_006164.evio.00266.hipo"; // target deuterium
+		//double Ebeam = 10.6; //GeV
+		
+		
 		reader.open(dataFile);
 
+		// ----------------------------------------------------------------------------------
+		// Creating output HIPO file
 		HipoWriter writer = reader.createWriter();
 		writer.open("/Users/Reynier/WORK/CLAS12/data/cooked/rga/filter_output.hipo");
 
@@ -123,9 +136,7 @@ public class rga_test {
 				HipoGroup bank_calorimeter = event.getGroup("REC::Calorimeter");
 
 				//HipoGroup rEC_event = event.getGroup("REC::Event");
-				//rEC_event.show();
 				//HipoGroup bank_FTOF = event.getGroup("FTOF::hbhits"); 
-				//bank_FTOF.show();
 
 				//bank_particle.show();
 				//bank_calorimeter.show();
@@ -192,7 +203,8 @@ public class rga_test {
 				// -------------------------------------------------------------------------
 				// Fill some histograms before cutting on good electrons
 				h2_e_Ep_p_0.fill(ep,Ee/ep);
-
+				h2_e_vz_phi.fill(rad2deg*phi_e, evz);
+				
 				// -------------------------------------------------------------------------
 				// Only keep events for which the first particle is an electron
 				if(     (pid0!=11            )||
@@ -213,8 +225,8 @@ public class rga_test {
 
 				// QE cut
 				//if((Math.sqrt(W2)>1.097+0.1)||(Math.sqrt(W2)<1.097-0.1)) continue;
-				if((xB>1+0.2)||(xB<1-0.2)) continue;
-				//if((xB>1+0.5)||(xB<1-0.5)) continue;
+				//if((xB>1+0.2)||(xB<1-0.2)) continue;
+				if((xB>1+0.5)||(xB<1-0.5)) continue;
 
 				// Filling electron histograms
 				h1_e_lu .fill(lU           );
@@ -233,8 +245,9 @@ public class rga_test {
 				h2_e_Ep_p_1.fill(ep,Ee/ep);
 				h2_e_th_phi.fill(rad2deg*phi_e,rad2deg*th_e);
 
+				// Saving these events in output file
 				writer.writeEvent(event);
-
+				
 				// -------------------------------------------------------------------------
 				// Loop over the remaining particles and require a proton
 				int nProtons = 0;
@@ -302,27 +315,24 @@ public class rga_test {
 					double E_mmiss = Ebeam + mtar - ep - Ep;
 					double Mmiss = Math.sqrt(E_mmiss*E_mmiss - Pm*Pm);
 					
-					h2_beta_p_1.fill(pp, beta_p);
-					h1_p_vz.fill(pvz);
-					h1_dlt_vz.fill(delt_vz);
-
-					h1_p_px    .fill(ppx);
-					h1_p_py    .fill(ppy);
-					h1_p_pz    .fill(ppz);
-					h1_p_p     .fill(pp );
-
-					h1_p_th    .fill(rad2deg*th_p);
+					h1_p_vz    .fill(pvz          );
+					h1_dlt_vz  .fill(delt_vz      );
+					h1_p_px    .fill(ppx          );
+					h1_p_py    .fill(ppy          );
+					h1_p_pz    .fill(ppz          );
+					h1_p_p     .fill(pp           );
+					h1_p_th    .fill(rad2deg*th_p );
 					h1_p_phi   .fill(rad2deg*phi_p);
-					h2_p_th_phi.fill(rad2deg*phi_p, rad2deg*th_p);
-
-					// Missing momentum histograms
-					h1_pmx     .fill(pmx);
-					h1_pmy     .fill(pmy);
-					h1_pmz     .fill(pmz);
-					h1_pmiss   .fill(Pm);
-					h1_Mmiss   .fill(Mmiss);
+					h1_pmx     .fill(pmx          );
+					h1_pmy     .fill(pmy          );
+					h1_pmz     .fill(pmz          );
+					h1_pmiss   .fill(Pm           );
+					h1_Mmiss   .fill(Mmiss        );
 					
-					//writer.writeEvent(event);
+					h2_p_th_phi.fill(rad2deg*phi_p, rad2deg*th_p);
+					h2_p_vz_phi.fill(rad2deg*phi_p, pvz         );
+					h2_beta_p_1.fill(pp           , beta_p      );
+					
 				}
 
 				h1_p_num.fill((double)(nProtons));
@@ -403,6 +413,11 @@ public class rga_test {
 		
 		TCanvas c12 = new TCanvas("c12", 800, 600);
 		c12.draw(h1_Mmiss);
+		
+		TCanvas c13 = new TCanvas("c13", 800, 600);
+		c13.divide(2, 1);
+		c13.cd(0);	c13.draw(h2_e_vz_phi);
+		c13.cd(1);	c13.draw(h2_p_vz_phi);
 
 	}
 	// =========================================================================================================
