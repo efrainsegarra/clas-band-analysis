@@ -9,6 +9,7 @@ import org.jlab.jnp.hipo.data.HipoEvent;
 import org.jlab.jnp.hipo.data.HipoGroup;
 import org.jlab.jnp.hipo.data.HipoNode;
 import org.jlab.jnp.hipo.io.HipoReader;
+import org.jlab.jnp.hipo.io.HipoWriter;
 
 import org.jlab.clas.physics.*;
 
@@ -26,7 +27,8 @@ public class rga_test {
 
 		// ----------------------------------------------------------------------------------
 		// Useful variables
-		double Ebeam = 6.4;//GeV
+		double Ebeam = 6.4; //GeV
+		Vector3 v3_beam = new Vector3(0,0,Ebeam);
 		double mp = 0.93827; //GeV
 		double mtar = mp;
 		double rad2deg = 180./3.14159;
@@ -40,79 +42,89 @@ public class rga_test {
 		double cut_W       =     0; //GeV
 		double cut_uvw     =    15; //cm
 		double cut_Epcal   = 0.060; //GeV (60 MeV)
-		
+
 		// ----------------------------------------------------------------------------------
 		// Declaring histograms
 		// 1D histograms
-		H1F h1_e_vz  = new H1F("h1_e_vz"  ,"h1_e_vz"  ,100, -50,50);		PrettyH1F(h1_e_vz ,"v_{z} [cm]"  ,"Counts",4);
+		H1F h1_e_vz  = new H1F("h1_e_vz"  ,"h1_e_vz"  ,100, -50, 50);	PrettyH1F(h1_e_vz  ,"v_{z} [cm]"           ,"Counts",4);
 
-		H1F h1_e_px  = new H1F("h1_e_px"  ,"h1_e_px"  ,100,-2, 2);		PrettyH1F(h1_e_px ,"electron p_{x} [GeV]" ,"Counts",4);
-		H1F h1_e_py  = new H1F("h1_e_py"  ,"h1_e_py"  ,100,-2, 2);		PrettyH1F(h1_e_py ,"electron p_{y} [GeV]" ,"Counts",4);
-		H1F h1_e_pz  = new H1F("h1_e_pz"  ,"h1_e_pz"  ,100, 0, 9);		PrettyH1F(h1_e_pz ,"electron p_{z} [GeV]" ,"Counts",4);
-		H1F h1_e_p   = new H1F("h1_e_p"   ,"h1_e_p"   ,100, 0, 9);		PrettyH1F(h1_e_p  ,"electron |p| [GeV]"   ,"Counts",4);
+		H1F h1_e_px  = new H1F("h1_e_px"  ,"h1_e_px"  ,100,  -2,  2);	PrettyH1F(h1_e_px  ,"electron p_{x} [GeV]" ,"Counts",4);
+		H1F h1_e_py  = new H1F("h1_e_py"  ,"h1_e_py"  ,100,  -2,  2);	PrettyH1F(h1_e_py  ,"electron p_{y} [GeV]" ,"Counts",4);
+		H1F h1_e_pz  = new H1F("h1_e_pz"  ,"h1_e_pz"  ,100,   0,  9);	PrettyH1F(h1_e_pz  ,"electron p_{z} [GeV]" ,"Counts",4);
+		H1F h1_e_p   = new H1F("h1_e_p"   ,"h1_e_p"   ,100,   0,  9);	PrettyH1F(h1_e_p   ,"electron |p| [GeV]"   ,"Counts",4);
 
-		H1F h1_e_th  = new H1F("h1_e_th"  ,"h1_e_th"  ,100,   0, 30);	PrettyH1F(h1_e_th ,"#theta_e [deg]","Counts",4);
-		H1F h1_e_phi = new H1F("h1_e_phi" ,"h1_e_phi" ,100,-190,190);	PrettyH1F(h1_e_phi,"#phi_e [deg]"  ,"Counts",4);
-		H1F h1_e_lu  = new H1F("h1_e_lu"  ,"h1_e_lu"  ,100,   0,500);	PrettyH1F(h1_e_lu ,"distance on U-side","Counts",4);
-		H1F h1_e_lv  = new H1F("h1_e_lv"  ,"h1_e_lv"  ,100,   0,500);	PrettyH1F(h1_e_lv ,"distance on U-side","Counts",4);
-		H1F h1_e_lw  = new H1F("h1_e_lw"  ,"h1_e_lw"  ,100,   0,500);	PrettyH1F(h1_e_lw ,"distance on U-side","Counts",4);
+		H1F h1_e_th  = new H1F("h1_e_th"  ,"h1_e_th"  ,100,   0, 30);	PrettyH1F(h1_e_th  ,"#theta_e [deg]"       ,"Counts",4);
+		H1F h1_e_phi = new H1F("h1_e_phi" ,"h1_e_phi" ,100,-190,190);	PrettyH1F(h1_e_phi ,"#phi_e [deg]"         ,"Counts",4);
+		H1F h1_e_lu  = new H1F("h1_e_lu"  ,"h1_e_lu"  ,100,   0,500);	PrettyH1F(h1_e_lu  ,"distance on U-side"   ,"Counts",4);
+		H1F h1_e_lv  = new H1F("h1_e_lv"  ,"h1_e_lv"  ,100,   0,500);	PrettyH1F(h1_e_lv  ,"distance on V-side"   ,"Counts",4);
+		H1F h1_e_lw  = new H1F("h1_e_lw"  ,"h1_e_lw"  ,100,   0,500);	PrettyH1F(h1_e_lw  ,"distance on W-side"   ,"Counts",4);
 
-		H1F h1_p_vz  = new H1F("h1_p_vz"  ,"h1_p_vz"  ,100, -50,50);	PrettyH1F(h1_p_vz ,"v_{z} [cm]"  ,"Counts",2);
+		H1F h1_p_vz  = new H1F("h1_p_vz"  ,"h1_p_vz"  ,100, -50, 50);	PrettyH1F(h1_p_vz  ,"v_{z} [cm]"           ,"Counts",2);
+		H1F h1_p_num = new H1F("h1_p_num" ,"h1_p_num" , 20,   0, 10);	PrettyH1F(h1_p_num ,"proton number"        ,"Counts",4);
 
-		H1F h1_p_px  = new H1F("h1_p_px"  ,"h1_p_px"  ,100,  -2, 2);	PrettyH1F(h1_p_px ,"proton p_{x} [GeV]" ,"Counts",4);
-		H1F h1_p_py  = new H1F("h1_p_py"  ,"h1_p_py"  ,100,  -2, 2);	PrettyH1F(h1_p_py ,"proton p_{y} [GeV]" ,"Counts",4);
-		H1F h1_p_pz  = new H1F("h1_p_pz"  ,"h1_p_pz"  ,100,   0, 9);	PrettyH1F(h1_p_pz ,"proton p_{z} [GeV]" ,"Counts",4);
-		H1F h1_p_p   = new H1F("h1_p_p"   ,"h1_p_p"   ,100,   0, 9);	PrettyH1F(h1_p_p  ,"proton |p| [GeV]"   ,"Counts",4);
+		H1F h1_p_px  = new H1F("h1_p_px"  ,"h1_p_px"  ,100,  -2,  2);	PrettyH1F(h1_p_px  ,"proton p_{x} [GeV]"   ,"Counts",4);
+		H1F h1_p_py  = new H1F("h1_p_py"  ,"h1_p_py"  ,100,  -2,  2);	PrettyH1F(h1_p_py  ,"proton p_{y} [GeV]"   ,"Counts",4);
+		H1F h1_p_pz  = new H1F("h1_p_pz"  ,"h1_p_pz"  ,100,   0,  9);	PrettyH1F(h1_p_pz  ,"proton p_{z} [GeV]"   ,"Counts",4);
+		H1F h1_p_p   = new H1F("h1_p_p"   ,"h1_p_p"   ,100,   0,  9);	PrettyH1F(h1_p_p   ,"proton |p| [GeV]"     ,"Counts",4);
 
-		H1F h1_p_th  = new H1F("h1_p_th"  ,"h1_p_th"  ,100,   0,80);	PrettyH1F(h1_p_th ,"#theta_p [deg]","Counts",4);
-		H1F h1_p_phi = new H1F("h1_p_phi" ,"h1_p_phi" ,100,-190,190);	PrettyH1F(h1_p_phi,"#phi_p [deg]"  ,"Counts",4);
+		H1F h1_p_th  = new H1F("h1_p_th"  ,"h1_p_th"  ,100,   0, 80);	PrettyH1F(h1_p_th  ,"#theta_p [deg]"       ,"Counts",4);
+		H1F h1_p_phi = new H1F("h1_p_phi" ,"h1_p_phi" ,100,-190,190);	PrettyH1F(h1_p_phi ,"#phi_p [deg]"         ,"Counts",4);
 
-		H1F h1_pmiss = new H1F("h1_pmiss" ,"P_{miss}" ,100, 0, 5);		PrettyH1F(h1_pmiss,"Pm [GeV]"      ,"Counts",4);
-		H1F h1_pmx   = new H1F("h1_pmx"   ,"h1_pmx"   ,100,-2, 2);		PrettyH1F(h1_pmx  ,"Pmx [GeV]"     ,"Counts",4);
-		H1F h1_pmy   = new H1F("h1_pmy"   ,"h1_pmy"   ,100,-2, 2);		PrettyH1F(h1_pmy  ,"Pmy [GeV]"     ,"Counts",4);
-		H1F h1_pmz   = new H1F("h1_pmz"   ,"h1_pmz"   ,100,-3, 3);		PrettyH1F(h1_pmz  ,"Pmz [GeV]"     ,"Counts",4);
+		H1F h1_pmiss = new H1F("h1_pmiss" ,"P_{miss}" ,100,   0,  5);	PrettyH1F(h1_pmiss ,"Pm [GeV]"             ,"Counts",4);
+		H1F h1_pmx   = new H1F("h1_pmx"   ,"h1_pmx"   ,100,  -2,  2);	PrettyH1F(h1_pmx   ,"Pmx [GeV]"            ,"Counts",4);
+		H1F h1_pmy   = new H1F("h1_pmy"   ,"h1_pmy"   ,100,  -2,  2);	PrettyH1F(h1_pmy   ,"Pmy [GeV]"            ,"Counts",4);
+		H1F h1_pmz   = new H1F("h1_pmz"   ,"h1_pmz"   ,100,  -3,  3);	PrettyH1F(h1_pmz   ,"Pmz [GeV]"            ,"Counts",4);
+		H1F h1_Mmiss = new H1F("h1_Mmiss" ,"h1_Mmiss" ,100,  -1,  2);	PrettyH1F(h1_Mmiss ,"m_{miss} [GeV]"       ,"Counts",4);
+		
+		H1F h1_W     = new H1F("h1_W"     ,"h1_W"     ,100,   0,  4);	PrettyH1F(h1_W     ,"W [GeV]"              ,"Counts",4);
+		H1F h1_xB    = new H1F("h1_xB"    ,"h1_xB"    ,100,   0,  4);	PrettyH1F(h1_xB    ,"x_B"                  ,"Counts",4);
 
-		H1F h1_W     = new H1F("h1_W"     ,"h1_W"     ,100, 0, 4);		PrettyH1F(h1_W    ,"W [GeV]"       ,"Counts",4);
-		H1F h1_xB    = new H1F("h1_xB"    ,"h1_xB"    ,100, 0, 4);		PrettyH1F(h1_xB   ,"x_B"           ,"Counts",4);
-
-		H1F h1_dlt_vz= new H1F("h1_dlt_vz","h1_dlt_vz",100,-20,20);		PrettyH1F(h1_dlt_vz,"#Delta v_{z} [cm]"  ,"Counts",4);
+		H1F h1_dlt_vz= new H1F("h1_dlt_vz","h1_dlt_vz",100, -20, 20);	PrettyH1F(h1_dlt_vz,"#Delta v_{z} [cm]"    ,"Counts",4);
 
 		// 2D histograms
-		H2F h2_e_Ep_p   = new H2F("h2_e_Ep_p"  ,"h2_e_Ep_p"  ,100,1   ,  7,100,0,0.4);	
-		H2F h2_e_th_phi = new H2F("h2_e_th_phi","h2_e_th_phi",100,-190,190,100,0, 30);
-		H2F h2_p_th_phi = new H2F("h2_p_th_phi","h2_p_th_phi",100,-190,190,100,0, 80);
-		H2F h2_beta_p_0 = new H2F("h2_beta_p_0","h2_beta_p_0",100,0   ,  4,100,0,1.1);
-		H2F h2_beta_p_1 = new H2F("h2_beta_p_1","h2_beta_p_1",100,0   ,  4,100,0,1.1);
+		H2F h2_e_Ep_p_0 = new H2F("h2_e_Ep_p_0" ,"h2_e_Ep_p_0" ,100,1   ,  7,100,  0,0.4);
+		H2F h2_e_Ep_p_1 = new H2F("h2_e_Ep_p_1" ,"h2_e_Ep_p_1" ,100,1   ,  7,100,  0,0.4);	
+		H2F h2_e_th_phi = new H2F("h2_e_th_phi" ,"h2_e_th_phi" ,100,-190,190,100,  0, 30);
+		H2F h2_p_th_phi = new H2F("h2_p_th_phi" ,"h2_p_th_phi" ,100,-190,190,100,  0, 80);
+		H2F h2_beta_p_0 = new H2F("h2_beta_p_0" ,"h2_beta_p_0" ,100,0   ,  4,100,0.1,1.1);
+		H2F h2_beta_p_1 = new H2F("h2_beta_p_1" ,"h2_beta_p_1" ,100,0   ,  4,100,0.1,1.1);
 
-		PrettyH2F(h2_e_Ep_p  ,"p_{e}"       ,"E_{e}/p_{e}"   );
+		PrettyH2F(h2_e_Ep_p_0,"p_{e}"       ,"E_{e}/p_{e}"   );
+		PrettyH2F(h2_e_Ep_p_1,"p_{e}"       ,"E_{e}/p_{e}"   );
 		PrettyH2F(h2_e_th_phi,"#phi_e [deg]","#theta_e [deg]");
-
+		PrettyH2F(h2_p_th_phi,"#phi_p [deg]","#theta_p [deg]");
+		PrettyH2F(h2_beta_p_0,"p [GeV]"     ,"#beta"         );
+		PrettyH2F(h2_beta_p_1,"p [GeV]"     ,"#beta"         );
 		// ----------------------------------------------------------------------------------
 		// Opening HIPO file
 		HipoReader reader = new HipoReader();
 		//String dataFile = "/Users/efrainsegarra/Documents/band/prod_data/clas_006194.evio.00037.hipo"; // target lH2
 		String dataFile = "/Users/Reynier/WORK/CLAS12/data/cooked/rga/out_clas_003842.evio.295.hipo"; // target lH2
 		reader.open(dataFile);
-		GenericKinematicFitter fitter = new GenericKinematicFitter(Ebeam);
 
+		HipoWriter writer = reader.createWriter();
+		writer.open("/Users/Reynier/WORK/CLAS12/data/cooked/rga/filter_output.hipo");
+
+		int event_counter = 0;
 		// ----------------------------------------------------------------------------------
 		// Loop over events and print them on the screen
 		while(reader.hasNext()==true){
 			HipoEvent event = reader.readNextEvent();
 			//event.show();
 
+			if(event_counter%10000==0) System.out.println("event: "+event_counter);
+			event_counter++;
+
 			if(     (event.hasGroup("REC::Particle"))&&
 					(event.hasGroup("REC::Calorimeter"))
 					){	
 
-				//HipoGroup bank_particle    = event.getGroup("RECHB::Particle"   );
-				//HipoGroup bank_calorimeter = event.getGroup("RECHB::Calorimeter");
 				HipoGroup bank_particle    = event.getGroup("REC::Particle"   );
 				HipoGroup bank_calorimeter = event.getGroup("REC::Calorimeter");
 
 				//HipoGroup rEC_event = event.getGroup("REC::Event");
 				//rEC_event.show();
-				//HipoGroup bank_FTOF = event.getGroup("FTOF::hbhits"); //(need bank 330) event.json
+				//HipoGroup bank_FTOF = event.getGroup("FTOF::hbhits"); 
 				//bank_FTOF.show();
 
 				//bank_particle.show();
@@ -123,7 +135,7 @@ public class rga_test {
 				// - (DONE)	pid=11 from EB
 				// - (DONE)	p > 2 GeV
 				// - (DONE)	p < Ebeam
-				// - 		TOF > 10 ns
+				// - 		TOF > 10 ns //(need bank 330) event.json
 				// - (DONE)	vz: -15 to 10 cm
 				// - (DONE)	W > 0 GeV
 				// - (DONE-ish)		Sampling fraction +/-3sigma about E/p vs. p mean
@@ -178,6 +190,10 @@ public class rga_test {
 				double qz = Ebeam - epz;
 
 				// -------------------------------------------------------------------------
+				// Fill some histograms before cutting on good electrons
+				h2_e_Ep_p_0.fill(ep,Ee/ep);
+
+				// -------------------------------------------------------------------------
 				// Only keep events for which the first particle is an electron
 				if(     (pid0!=11            )||
 						(chr0!=-1            )||
@@ -194,7 +210,12 @@ public class rga_test {
 						) continue;
 
 				//if(Ee/ep>0.30||Ee/ep<0.20) continue;
-				
+
+				// QE cut
+				//if((Math.sqrt(W2)>1.097+0.1)||(Math.sqrt(W2)<1.097-0.1)) continue;
+				if((xB>1+0.2)||(xB<1-0.2)) continue;
+				//if((xB>1+0.5)||(xB<1-0.5)) continue;
+
 				// Filling electron histograms
 				h1_e_lu .fill(lU           );
 				h1_e_lv .fill(lV           );
@@ -209,14 +230,19 @@ public class rga_test {
 				h1_e_th .fill(rad2deg*th_e );
 				h1_e_phi.fill(rad2deg*phi_e);
 
-				h2_e_Ep_p.fill(ep,Ee/ep);
+				h2_e_Ep_p_1.fill(ep,Ee/ep);
 				h2_e_th_phi.fill(rad2deg*phi_e,rad2deg*th_e);
+
+				writer.writeEvent(event);
 
 				// -------------------------------------------------------------------------
 				// Loop over the remaining particles and require a proton
+				int nProtons = 0;
+				int tmp_fast_p_idx  = 0;	// index of the fastest proton
+				double tmp_fast_p_p = 0;	// momentum of the fastest proton
+
 				int nParticles = bank_particle.getNode("pid").getDataSize();
 				for(int par = 1; par < nParticles; par++) {
-
 					int pidi      = bank_particle.getNode("pid"   ).getInt  (par);		// proton candidate id assigned by clas
 					int chri      = bank_particle.getNode("charge").getInt  (par);		// proton candidate charge
 					double beta_p = bank_particle.getNode("beta"  ).getFloat(par);		// proton candidate beta (v/c)
@@ -227,49 +253,85 @@ public class rga_test {
 					double pvy    = bank_particle.getNode("vy"    ).getFloat(par);		// proton candidate vertex y coordinate [cm]
 					double pvz    = bank_particle.getNode("vz"    ).getFloat(par);		// proton candidate vertex z coordinate [cm]
 
-					double pp     = Math.sqrt(ppx*ppx + ppy*ppy + ppz*ppz);
-					Vector3 v3_pp = new Vector3(ppx,ppy,ppz);							// proton candidate momentum vector [GeV]		
-					double th_p   = v3_pp.theta();										// proton candidate theta [rad]
-					double phi_p  = v3_pp.phi();										// proton candidate phi [rad]
-
-					double delt_vz = pvz - evz;		
+					double pp     = Math.sqrt(ppx*ppx + ppy*ppy + ppz*ppz);		
 
 					// Fill some histograms before checking the particles are protons
 					h2_beta_p_0.fill(pp, beta_p);
 
+					// ----------------------------------------------------------------------
+					// If there are protons, find the fastest one and consider that (e,e'p)X
+					// (Add proton event selection cuts below)
 					if(     (pidi==2212)&&
-							(chri==1)
+							(chri==1   )
 							) {
-
-						double pmx = ppx - qx;
-						double pmy = ppy - qy;
-						double pmz = ppz - qz;
-						double Pm = Math.sqrt(pmx*pmx + pmy*pmy + pmz*pmz);
-
-						h2_beta_p_1.fill(pp, beta_p);
-						h1_p_vz.fill(pvz);
-						h1_dlt_vz.fill(delt_vz);
-
-						h1_p_px .fill(ppx);
-						h1_p_py .fill(ppy);
-						h1_p_pz .fill(ppz);
-						h1_p_p  .fill(pp );
-
-						h1_p_th .fill(rad2deg*th_p);
-						h1_p_phi.fill(rad2deg*phi_p);
-						h2_p_th_phi.fill(rad2deg*phi_p, rad2deg*th_p);
-
-						// Missing momentum histograms
-						h1_pmx  .fill(pmx);
-						h1_pmy  .fill(pmy);
-						h1_pmz  .fill(pmz);
-						h1_pmiss.fill(Pm);
+						nProtons++;
+						if(pp>tmp_fast_p_p) {
+							tmp_fast_p_p = pp;
+							tmp_fast_p_idx=par;
+						}
 					}
+					// ----------------------------------------------------------------------
 				}
+				if(nProtons>0) {
+
+					int pidi      = bank_particle.getNode("pid"   ).getInt  (tmp_fast_p_idx);		// proton candidate id assigned by clas
+					int chri      = bank_particle.getNode("charge").getInt  (tmp_fast_p_idx);		// proton candidate charge
+					double beta_p = bank_particle.getNode("beta"  ).getFloat(tmp_fast_p_idx);		// proton candidate beta (v/c)
+					double ppx    = bank_particle.getNode("px"    ).getFloat(tmp_fast_p_idx);		// proton candidate momentum x-component [GeV]
+					double ppy    = bank_particle.getNode("py"    ).getFloat(tmp_fast_p_idx);		// proton candidate momentum y-component [GeV]
+					double ppz    = bank_particle.getNode("pz"    ).getFloat(tmp_fast_p_idx);		// proton candidate momentum z-component [GeV]
+					double pvx    = bank_particle.getNode("vx"    ).getFloat(tmp_fast_p_idx);		// proton candidate vertex x coordinate [cm]
+					double pvy    = bank_particle.getNode("vy"    ).getFloat(tmp_fast_p_idx);		// proton candidate vertex y coordinate [cm]
+					double pvz    = bank_particle.getNode("vz"    ).getFloat(tmp_fast_p_idx);		// proton candidate vertex z coordinate [cm]
+
+					double pp     = Math.sqrt(ppx*ppx + ppy*ppy + ppz*ppz);
+					double Ep     = Math.sqrt(pp*pp+mp*mp);
+					Vector3 v3_pp = new Vector3(ppx,ppy,ppz);							// proton candidate momentum vector [GeV]		
+					double th_p   = v3_pp.theta();										// proton candidate theta [rad]
+					double phi_p  = v3_pp.phi();										// proton candidate phi [rad]
+
+					double delt_vz= pvz - evz;
+					
+					// Missing momentum components
+					double pmx = ppx - qx;
+					double pmy = ppy - qy;
+					double pmz = ppz - qz;
+					double Pm = Math.sqrt(pmx*pmx + pmy*pmy + pmz*pmz);
+
+					// Missing mass
+					double E_mmiss = Ebeam + mtar - ep - Ep;
+					double Mmiss = Math.sqrt(E_mmiss*E_mmiss - Pm*Pm);
+					
+					h2_beta_p_1.fill(pp, beta_p);
+					h1_p_vz.fill(pvz);
+					h1_dlt_vz.fill(delt_vz);
+
+					h1_p_px    .fill(ppx);
+					h1_p_py    .fill(ppy);
+					h1_p_pz    .fill(ppz);
+					h1_p_p     .fill(pp );
+
+					h1_p_th    .fill(rad2deg*th_p);
+					h1_p_phi   .fill(rad2deg*phi_p);
+					h2_p_th_phi.fill(rad2deg*phi_p, rad2deg*th_p);
+
+					// Missing momentum histograms
+					h1_pmx     .fill(pmx);
+					h1_pmy     .fill(pmy);
+					h1_pmz     .fill(pmz);
+					h1_pmiss   .fill(Pm);
+					h1_Mmiss   .fill(Mmiss);
+					
+					//writer.writeEvent(event);
+				}
+
+				h1_p_num.fill((double)(nProtons));
 
 			}
 
 		} // End of while loop over events
+
+		writer.close();
 
 		// -------------------------------------------------------------------------------------------
 		// Drawing histograms
@@ -301,7 +363,9 @@ public class rga_test {
 		c4.draw(h1_xB);
 
 		TCanvas c5 = new TCanvas("c5", 800, 600);
-		c5.draw(h2_e_Ep_p);
+		c5.divide(2, 1);
+		c5.cd(0);	c5.draw(h2_e_Ep_p_0);
+		c5.cd(1);	c5.draw(h2_e_Ep_p_1);
 
 		TCanvas c6 = new TCanvas("c6", 800, 600);
 		c6.divide(2, 2);
@@ -333,6 +397,12 @@ public class rga_test {
 		c10.cd(0);	c10.draw(h1_e_lu);
 		c10.cd(1);	c10.draw(h1_e_lv);
 		c10.cd(2);	c10.draw(h1_e_lw);
+
+		TCanvas c11 = new TCanvas("c11", 800, 600);
+		c11.draw(h1_p_num);
+		
+		TCanvas c12 = new TCanvas("c12", 800, 600);
+		c12.draw(h1_Mmiss);
 
 	}
 	// =========================================================================================================
