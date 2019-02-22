@@ -56,6 +56,8 @@ public class meantime {
 		H1F h1_adcR = new H1F("h1_adcR","",1000,0,30000);					PrettyH1F(h1_adcR ,"R ADC"  ,"Counts",1);
 		H1F h1_ToF_fadc = new H1F("h1_ToF_fadc","",50,0,100); 			PrettyH1F(h1_ToF_fadc ,"(L+R)/2 - RF for FADC"  ,"Counts",1);
 		H1F h1_ToF_tdc = new H1F("h1_ToF_tdc","",250,400,900); 				PrettyH1F(h1_ToF_tdc ,"(L+R)/2 - RF for TDC"  ,"Counts",1);
+		
+		H1F h1_bar_nPho = new H1F("h1_bar_nPho","",	652,110,652);	PrettyH1F(h1_bar_nPho,"Bar ID","Number Hits Between 5-15 ns",1);
 
 
 		// ----------------------------------------------------------------------------------
@@ -203,7 +205,7 @@ public class meantime {
 						float uy = band_hits.getNode("uy").getFloat(hit);
 						float uz = band_hits.getNode("uz").getFloat(hit);
 
-						if( sector == 3 || sector == 4 ) continue;
+						//if( sector == 3 || sector == 4 ) continue;
 
 						double dL = Math.sqrt( Math.pow(x,2) + Math.pow(y,2) + Math.pow(z,2) );
 						// Fill histograms
@@ -216,7 +218,9 @@ public class meantime {
 						h1_ToF_fadc.fill(meantimeFadc-t_vtx-40);
 						h1_ToF_tdc.fill(meantimeTdc-t_vtx);
 
-
+						if( Math.abs( meantimeFadc-t_vtx-40 - 10 ) < 5 ){
+							h1_bar_nPho.fill( layer*100+sector*10+component);
+						}
 
 					}// end loop over hits in event
 
@@ -227,8 +231,6 @@ public class meantime {
 
 		TCanvas c0 = new TCanvas("c0", 800, 600);
 		c0.divide(2, 4);
-
-
 		c0.cd(0);	c0.draw(h1_adcL);
 		c0.cd(1);	c0.draw(h1_adcR);
 		c0.cd(2);	c0.draw(h1_tdiff_fadc);
@@ -236,7 +238,7 @@ public class meantime {
 		c0.cd(4);	c0.draw(h1_meantime_fadc);
 		c0.cd(5);	c0.draw(h1_meantime_tdc);
 		c0.cd(6);	c0.draw(h1_ToF_fadc);
-		c0.cd(7);	c0.draw(h1_ToF_tdc);
+		c0.cd(7);	c0.draw(h1_bar_nPho);
 
 	}
 	// =========================================================================================================
@@ -245,5 +247,9 @@ public class meantime {
 		h1.setTitleY(tity);
 		h1.setLineColor(color);
 		h1.setLineWidth(3);
+	}
+	public static void PrettyH2F(H2F h2,String titx,String tity) {
+		h2.setTitleX(titx);
+		h2.setTitleY(tity);
 	}
 }
