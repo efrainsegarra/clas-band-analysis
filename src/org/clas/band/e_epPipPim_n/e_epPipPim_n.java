@@ -137,8 +137,8 @@ public class e_epPipPim_n {
 		//double mtar    = mp;
 
 		// RGB example
-		String dataFile = "/Users/Reynier/WORK/CLAS12/data/cooked/rgb/hipo_6164_00000_00029.hipo"; // target deuterium
-		//String dataFile = "/Users/Reynier/WORK/CLAS12/data/cooked/rgb/hipo_6164_00000_00100.hipo"; // target deuterium
+		//String dataFile = "/Users/Reynier/WORK/CLAS12/data/cooked/rgb/hipo_6164_00000_00029.hipo"; // target deuterium
+		String dataFile = "/Users/Reynier/WORK/CLAS12/data/cooked/rgb/hipo_6164_00000_00100.hipo"; // target deuterium
 		double Ebeam = 10.6; //GeV
 		double mtar    = mD;
 
@@ -444,12 +444,13 @@ public class e_epPipPim_n {
 					double E_mmiss = Ebeam + mtar - ep - Ep - EPip - EPim;
 					double Mmiss = Math.sqrt(E_mmiss*E_mmiss - Pm*Pm);
 
-
 					//double Emiss = fn_Emiss( Pm, nu, mtar, Ep, mp);
 
-					if(Math.abs(pip_vz - evz)<0.1) System.out.println(pip_vz - evz+" "+tmp_fast_pip_idx);
-
-
+					if(     (Math.abs(pvz    - evz + 4.219763e-01) < 3*5.139898e+00)&&
+							(Math.abs(pip_vz - evz - 2.137405e+00) < 3*4.259259e+00)&&
+							(Math.abs(pim_vz - evz - 2.230033e+00) < 3*3.190657e+00)
+							) {
+					
 					h1_p_vz       .fill(pvz          );
 					h1_dlt_vz_ep  .fill(pvz    - evz );
 					h1_dlt_vz_epip.fill(pip_vz - evz );
@@ -478,6 +479,7 @@ public class e_epPipPim_n {
 
 					//h2_Em_Pm    .fill(Pm           , Emiss       );
 					h2_pe_pp    .fill(pp           , ep          );
+					}
 				}
 
 
