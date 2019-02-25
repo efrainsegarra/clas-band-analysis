@@ -9,7 +9,7 @@ import org.jlab.jnp.hipo.data.HipoEvent;
 import org.jlab.jnp.hipo.data.HipoGroup;
 import org.jlab.jnp.hipo.data.HipoNode;
 import org.jlab.jnp.hipo.io.HipoReader;
-
+import org.jlab.rec.band.constants.CalibrationConstantsLoader;
 import org.jlab.clas.physics.*;
 import org.jlab.io.base.DataBank;
 import org.jlab.io.base.DataEvent;
@@ -26,6 +26,7 @@ public class meantime {
 	public static void main(String[] args){		
 
 
+		CalibrationConstantsLoader.Load(6164,"default"); 
 		// ----------------------------------------------------------------------------------
 		// Useful variables
 		double mp      = 0.93827; //GeV
@@ -48,14 +49,15 @@ public class meantime {
 
 		// ----------------------------------------------------------------------------------
 		// Declaring histograms
-		H1F h1_meantime_fadc = new H1F("h1_meantime_fadc","",50,125,225); 	PrettyH1F(h1_meantime_fadc ,"(L+R)/2 for FADC"  ,"Counts",1);
-		H1F h1_meantime_tdc  = new H1F("h1_meantime_tdc","",250,400,900); 	PrettyH1F(h1_meantime_tdc ,"(L+R)/2 for TDC"  ,"Counts",1);
 		H1F h1_tdiff_fadc = new H1F("h1_tdiff_fadc","",100,-40,40); 		PrettyH1F(h1_tdiff_fadc ,"L-R for FADC"  ,"Counts",1);
 		H1F h1_tdiff_tdc  = new H1F("h1_tdiff_tdc","",100,-40,40);			PrettyH1F(h1_tdiff_tdc ,"L-R for TDC"  ,"Counts",1);
 		H1F h1_adcL = new H1F("h1_adcL","",1000,0,30000);					PrettyH1F(h1_adcL ,"L ADC"  ,"Counts",1);
 		H1F h1_adcR = new H1F("h1_adcR","",1000,0,30000);					PrettyH1F(h1_adcR ,"R ADC"  ,"Counts",1);
-		H1F h1_ToF_fadc = new H1F("h1_ToF_fadc","",225,-50,400); 			PrettyH1F(h1_ToF_fadc ,"(L+R)/2 - RF for FADC"  ,"Counts",1);
-		H1F h1_ToF_tdc = new H1F("h1_ToF_tdc","",750,0,1500); 				PrettyH1F(h1_ToF_tdc ,"(L+R)/2 - RF for TDC"  ,"Counts",1);
+
+		H1F h1_meantime_fadc = new H1F("h1_meantime_fadc","",400,-50,350); 	PrettyH1F(h1_meantime_fadc ,"(L+R)/2 (FADC)"  ,"Counts",1);
+		H1F h1_meantime_tdc  = new H1F("h1_meantime_tdc","",400,-50,350); 	PrettyH1F(h1_meantime_tdc ,"(L+R)/2 corrected (FADC)"  ,"Counts",1);
+		H1F h1_ToF_fadc = new H1F("h1_ToF_fadc","",400,-50,350); 			PrettyH1F(h1_ToF_fadc ,"(L+R)/2 - RF (FADC)"  ,"Counts",1);
+		H1F h1_ToF_tdc = new H1F("h1_ToF_tdc","",400,-50,350); 				PrettyH1F(h1_ToF_tdc ,"(L+R)/2 corrected - RF (FADC)"  ,"Counts",1);
 		
 		H1F h1_bar_nPho = new H1F("h1_bar_nPho","",	652,110,652);	PrettyH1F(h1_bar_nPho,"Bar ID","Number Hits Between 5-15 ns",1);
 
@@ -66,7 +68,8 @@ public class meantime {
 		for(String arg: args) {
 			String dataFile = arg;
 
-			//String dataFile = "/Users/efrainsegarra/Documents/band/prod_data/out_clas_006164.evio.00000.hipo"; // target lH2
+			//dataFile = "/volatile/clas12/segarrae/jaw-0.8/hipo_6164_allsplits.hipo"; // target lH2
+			
 			reader.open(dataFile);
 			GenericKinematicFitter fitter = new GenericKinematicFitter(Ebeam);
 			int cnt = 0;
@@ -178,9 +181,13 @@ public class meantime {
 						int sector = 	(int)band_hits.getNode("sector").getByte(hit);
 						int layer = 	(int)band_hits.getNode("layer").getByte(hit);
 						int component = (int)band_hits.getNode("component").getShort(hit);
+						
+						int barKey =  sector*100+layer*10+component;
 
 						float meantimeTdc	= band_hits.getNode("meantimeTdc").getFloat(hit);
 						float meantimeFadc 	= band_hits.getNode("meantimeFadc").getFloat(hit);
+
+						double meantimeFadc_corr = (double)meantimeFadc - CalibrationConstantsLoader.FADC_MT_P2P_OFFSET.get(Integer.valueOf(barKey) ) - CalibrationConstantsLoader.FADC_MT_L2L_OFFSET.get(Integer.valueOf(barKey) );
 						float difftimeTdc 	= band_hits.getNode("difftimeTdc").getFloat(hit);
 						float difftimeFadc 	= band_hits.getNode("difftimeFadc").getFloat(hit);
 
@@ -189,7 +196,8 @@ public class meantime {
 						float adcRcorr = band_hits.getNode("adcRcorr").getFloat(hit);
 
 						if( adcLcorr < 4000 || adcRcorr < 4000 ) continue;
-						if( sector < 3 || sector > 4 ) continue;
+						//if( sector < 3 || sector > 4 ) continue;
+						if( sector == 3 || sector == 4 ) continue;
 
 						float tFadcLcorr = band_hits.getNode("tFadcLcorr").getFloat(hit);
 						float tFadcRcorr = band_hits.getNode("tFadcRcorr").getFloat(hit);
@@ -210,14 +218,15 @@ public class meantime {
 
 						double dL = Math.sqrt( Math.pow(x,2) + Math.pow(y,2) + Math.pow(z,2) );
 						// Fill histograms
-						h1_meantime_fadc.fill(meantimeFadc);
-						h1_meantime_tdc.fill(meantimeTdc);
 						h1_tdiff_fadc.fill(difftimeFadc);
 						h1_tdiff_tdc.fill(difftimeTdc);
 						h1_adcL.fill(adcLcorr);
 						h1_adcR.fill(adcRcorr);
+
+						h1_meantime_fadc.fill(meantimeFadc);
+						h1_meantime_tdc.fill(meantimeFadc_corr);
 						h1_ToF_fadc.fill(meantimeFadc-t_vtx);
-						h1_ToF_tdc.fill(meantimeTdc-t_vtx);
+						h1_ToF_tdc.fill(meantimeFadc_corr-t_vtx);
 
 						if( Math.abs( meantimeFadc-t_vtx-40 - 10 ) < 5 ){
 							h1_bar_nPho.fill( layer*100+sector*10+component);
@@ -239,7 +248,7 @@ public class meantime {
 		c0.cd(4);	c0.draw(h1_meantime_fadc);
 		c0.cd(5);	c0.draw(h1_meantime_tdc);
 		c0.cd(6);	c0.draw(h1_ToF_fadc);
-		c0.cd(7);	c0.draw(h1_bar_nPho);
+		c0.cd(7);	c0.draw(h1_ToF_tdc);
 
 	}
 	// =========================================================================================================
