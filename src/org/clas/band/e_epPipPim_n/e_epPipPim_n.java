@@ -84,7 +84,9 @@ public class e_epPipPim_n {
 		H1F h1_W     = new H1F("h1_W"     ,"h1_W"     ,100,   0,  4);	PrettyH1F(h1_W     ,"W [GeV]"              ,"Counts",4);
 		H1F h1_xB    = new H1F("h1_xB"    ,"h1_xB"    ,100,   0,  4);	PrettyH1F(h1_xB    ,"x_B"                  ,"Counts",4);
 
-		H1F h1_dlt_vz= new H1F("h1_dlt_vz","h1_dlt_vz",100, -20, 20);	PrettyH1F(h1_dlt_vz,"#Delta v_{z} [cm]"    ,"Counts",4);
+		H1F h1_dlt_vz_ep  = new H1F("h1_dlt_vz_ep"  ,"electron - proton",100, -20, 20);	PrettyH1F(h1_dlt_vz_ep  ,"#Delta v_{z} [cm]"    ,"Counts",2);
+		H1F h1_dlt_vz_epip= new H1F("h1_dlt_vz_epip","electron - #pi+"  ,100, -20, 20);	PrettyH1F(h1_dlt_vz_epip,"#Delta v_{z} [cm]"    ,"Counts",3);
+		H1F h1_dlt_vz_epim= new H1F("h1_dlt_vz_epim","electron - #pi-"  ,100, -20, 20);	PrettyH1F(h1_dlt_vz_epim,"#Delta v_{z} [cm]"    ,"Counts",4);
 
 		// 2D histograms
 		H2F h2_e_Ep_p_0   = new H2F("h2_e_Ep_p_0"   ,"h2_e_Ep_p_0"  ,100,1   , 10,100,  0,0.4);
@@ -135,8 +137,8 @@ public class e_epPipPim_n {
 		//double mtar    = mp;
 
 		// RGB example
-		String dataFile = "/Users/Reynier/WORK/CLAS12/data/cooked/rgb/hipo_6164_00000_00029.hipo"; // target deuterium
-		//String dataFile = "/Users/Reynier/WORK/CLAS12/data/cooked/rgb/hipo_6164_00000_00100.hipo"; // target deuterium
+		//String dataFile = "/Users/Reynier/WORK/CLAS12/data/cooked/rgb/hipo_6164_00000_00029.hipo"; // target deuterium
+		String dataFile = "/Users/Reynier/WORK/CLAS12/data/cooked/rgb/hipo_6164_00000_00100.hipo"; // target deuterium
 		double Ebeam = 10.6; //GeV
 		double mtar    = mD;
 
@@ -382,7 +384,7 @@ public class e_epPipPim_n {
 							(pp<Ebeam  )
 							) {
 						nPip++;
-						if(pp>tmp_fast_p_p) {
+						if(pp>tmp_fast_pip_p) {
 							tmp_fast_pip_p = pp;
 							tmp_fast_pip_idx=par;
 						}
@@ -393,7 +395,7 @@ public class e_epPipPim_n {
 							(pp<Ebeam  )
 							) {
 						nPim++;
-						if(pp>tmp_fast_p_p) {
+						if(pp>tmp_fast_pim_p) {
 							tmp_fast_pim_p = pp;
 							tmp_fast_pim_idx=par;
 						}
@@ -412,7 +414,7 @@ public class e_epPipPim_n {
 					double pip_px  = bank_particle.getNode("px"  ).getFloat(tmp_fast_pip_idx);	// proton candidate momentum x-component [GeV]
 					double pip_py  = bank_particle.getNode("py"  ).getFloat(tmp_fast_pip_idx);	// proton candidate momentum y-component [GeV]
 					double pip_pz  = bank_particle.getNode("pz"  ).getFloat(tmp_fast_pip_idx);	// proton candidate momentum z-component [GeV]
-					double pip_pvz = bank_particle.getNode("vz"  ).getFloat(tmp_fast_pip_idx);	// proton candidate vertex z coordinate [cm]
+					double pip_vz  = bank_particle.getNode("vz"  ).getFloat(tmp_fast_pip_idx);	// proton candidate vertex z coordinate [cm]
 
 					double beta_pim= bank_particle.getNode("beta").getFloat(tmp_fast_pim_idx);	// proton candidate beta (v/c)
 					double pim_px  = bank_particle.getNode("px"  ).getFloat(tmp_fast_pim_idx);	// proton candidate momentum x-component [GeV]
@@ -425,7 +427,6 @@ public class e_epPipPim_n {
 					Vector3 v3_pp = new Vector3(ppx,ppy,ppz);							// proton candidate momentum vector [GeV]		
 					double th_p   = v3_pp.theta();										// proton candidate theta [rad]
 					double phi_p  = v3_pp.phi();										// proton candidate phi [rad]
-					double delt_vz= pvz - evz;
 
 					double pPip   = Math.sqrt(pip_px*pip_px + pip_py*pip_py + pip_pz*pip_pz);
 					double EPip   = Math.sqrt(pPip*pPip+mPiC*mPiC);
@@ -443,24 +444,28 @@ public class e_epPipPim_n {
 					double E_mmiss = Ebeam + mtar - ep - Ep - EPip - EPim;
 					double Mmiss = Math.sqrt(E_mmiss*E_mmiss - Pm*Pm);
 
-
 					//double Emiss = fn_Emiss( Pm, nu, mtar, Ep, mp);
 
-
-
-					h1_p_vz    .fill(pvz          );
-					h1_dlt_vz  .fill(delt_vz      );
-					h1_p_px    .fill(ppx          );
-					h1_p_py    .fill(ppy          );
-					h1_p_pz    .fill(ppz          );
-					h1_p_p     .fill(pp           );
-					h1_p_th    .fill(rad2deg*th_p );
-					h1_p_phi   .fill(rad2deg*phi_p);
-					h1_pmx     .fill(pmx          );
-					h1_pmy     .fill(pmy          );
-					h1_pmz     .fill(pmz          );
-					h1_pmiss   .fill(Pm           );
-					h1_Mmiss   .fill(Mmiss        );
+					if(     (Math.abs(pvz    - evz + 4.219763e-01) < 3*5.139898e+00)&&
+							(Math.abs(pip_vz - evz - 2.137405e+00) < 3*4.259259e+00)&&
+							(Math.abs(pim_vz - evz - 2.230033e+00) < 3*3.190657e+00)
+							) {
+					
+					h1_p_vz       .fill(pvz          );
+					h1_dlt_vz_ep  .fill(pvz    - evz );
+					h1_dlt_vz_epip.fill(pip_vz - evz );
+					h1_dlt_vz_epim.fill(pim_vz - evz );
+					h1_p_px       .fill(ppx          );
+					h1_p_py       .fill(ppy          );
+					h1_p_pz       .fill(ppz          );
+					h1_p_p        .fill(pp           );
+					h1_p_th       .fill(rad2deg*th_p );
+					h1_p_phi      .fill(rad2deg*phi_p);
+					h1_pmx        .fill(pmx          );
+					h1_pmy        .fill(pmy          );
+					h1_pmz        .fill(pmz          );
+					h1_pmiss      .fill(Pm           );
+					h1_Mmiss      .fill(Mmiss        );
 					//h1_Em      .fill(Emiss        );
 
 					h2_p_th_phi .fill(rad2deg*phi_p, rad2deg*th_p);
@@ -474,6 +479,7 @@ public class e_epPipPim_n {
 
 					//h2_Em_Pm    .fill(Pm           , Emiss       );
 					h2_pe_pp    .fill(pp           , ep          );
+					}
 				}
 
 
@@ -494,7 +500,10 @@ public class e_epPipPim_n {
 		c0.draw(h1_e_vz);
 		c0.draw(h1_p_vz,"same");
 		c0.cd(1);
-		c0.draw(h1_dlt_vz);
+		c0.getPad().setLegend(true);
+		c0.draw(h1_dlt_vz_ep);
+		c0.draw(h1_dlt_vz_epip,"same");
+		c0.draw(h1_dlt_vz_epim,"same");
 
 		TCanvas c1 = new TCanvas("c1", 1024, 768);
 		c1.divide(2, 2);
