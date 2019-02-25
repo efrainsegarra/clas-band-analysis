@@ -54,8 +54,8 @@ public class meantime {
 		H1F h1_tdiff_tdc  = new H1F("h1_tdiff_tdc","",100,-40,40);			PrettyH1F(h1_tdiff_tdc ,"L-R for TDC"  ,"Counts",1);
 		H1F h1_adcL = new H1F("h1_adcL","",1000,0,30000);					PrettyH1F(h1_adcL ,"L ADC"  ,"Counts",1);
 		H1F h1_adcR = new H1F("h1_adcR","",1000,0,30000);					PrettyH1F(h1_adcR ,"R ADC"  ,"Counts",1);
-		H1F h1_ToF_fadc = new H1F("h1_ToF_fadc","",50,0,100); 			PrettyH1F(h1_ToF_fadc ,"(L+R)/2 - RF for FADC"  ,"Counts",1);
-		H1F h1_ToF_tdc = new H1F("h1_ToF_tdc","",250,400,900); 				PrettyH1F(h1_ToF_tdc ,"(L+R)/2 - RF for TDC"  ,"Counts",1);
+		H1F h1_ToF_fadc = new H1F("h1_ToF_fadc","",225,-50,400); 			PrettyH1F(h1_ToF_fadc ,"(L+R)/2 - RF for FADC"  ,"Counts",1);
+		H1F h1_ToF_tdc = new H1F("h1_ToF_tdc","",750,0,1500); 				PrettyH1F(h1_ToF_tdc ,"(L+R)/2 - RF for TDC"  ,"Counts",1);
 		
 		H1F h1_bar_nPho = new H1F("h1_bar_nPho","",	652,110,652);	PrettyH1F(h1_bar_nPho,"Bar ID","Number Hits Between 5-15 ns",1);
 
@@ -189,6 +189,7 @@ public class meantime {
 						float adcRcorr = band_hits.getNode("adcRcorr").getFloat(hit);
 
 						if( adcLcorr < 4000 || adcRcorr < 4000 ) continue;
+						if( sector < 3 || sector > 4 ) continue;
 
 						float tFadcLcorr = band_hits.getNode("tFadcLcorr").getFloat(hit);
 						float tFadcRcorr = band_hits.getNode("tFadcRcorr").getFloat(hit);
@@ -215,7 +216,7 @@ public class meantime {
 						h1_tdiff_tdc.fill(difftimeTdc);
 						h1_adcL.fill(adcLcorr);
 						h1_adcR.fill(adcRcorr);
-						h1_ToF_fadc.fill(meantimeFadc-t_vtx-40);
+						h1_ToF_fadc.fill(meantimeFadc-t_vtx);
 						h1_ToF_tdc.fill(meantimeTdc-t_vtx);
 
 						if( Math.abs( meantimeFadc-t_vtx-40 - 10 ) < 5 ){
