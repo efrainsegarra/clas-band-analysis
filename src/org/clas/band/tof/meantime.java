@@ -9,7 +9,7 @@ import org.jlab.jnp.hipo.data.HipoEvent;
 import org.jlab.jnp.hipo.data.HipoGroup;
 import org.jlab.jnp.hipo.data.HipoNode;
 import org.jlab.jnp.hipo.io.HipoReader;
-
+import org.jlab.rec.band.constants.CalibrationConstantsLoader;
 import org.jlab.clas.physics.*;
 import org.jlab.io.base.DataBank;
 import org.jlab.io.base.DataEvent;
@@ -26,6 +26,7 @@ public class meantime {
 	public static void main(String[] args){		
 
 
+		CalibrationConstantsLoader.Load(6164,"default"); 
 		// ----------------------------------------------------------------------------------
 		// Useful variables
 		double mp      = 0.93827; //GeV
@@ -66,7 +67,8 @@ public class meantime {
 		for(String arg: args) {
 			String dataFile = arg;
 
-			//String dataFile = "/Users/efrainsegarra/Documents/band/prod_data/out_clas_006164.evio.00000.hipo"; // target lH2
+			//dataFile = "/volatile/clas12/segarrae/jaw-0.8/hipo_6164_allsplits.hipo"; // target lH2
+			
 			reader.open(dataFile);
 			GenericKinematicFitter fitter = new GenericKinematicFitter(Ebeam);
 			int cnt = 0;
@@ -178,9 +180,13 @@ public class meantime {
 						int sector = 	(int)band_hits.getNode("sector").getByte(hit);
 						int layer = 	(int)band_hits.getNode("layer").getByte(hit);
 						int component = (int)band_hits.getNode("component").getShort(hit);
+						
+						int barKey =  sector*100+layer*10+component;
 
 						float meantimeTdc	= band_hits.getNode("meantimeTdc").getFloat(hit);
 						float meantimeFadc 	= band_hits.getNode("meantimeFadc").getFloat(hit);
+						double meantimeFadc_corr = (double)meantimeFadc - CalibrationConstantsLoader.FADC_MT_P2P_OFFSET.get(Integer.valueOf(barKey) )
+								- CalibrationConstantsLoader.FADC_MT_L2L_OFFSET.get(Integer.valueOf(barKey) );
 						float difftimeTdc 	= band_hits.getNode("difftimeTdc").getFloat(hit);
 						float difftimeFadc 	= band_hits.getNode("difftimeFadc").getFloat(hit);
 
@@ -209,13 +215,13 @@ public class meantime {
 
 						double dL = Math.sqrt( Math.pow(x,2) + Math.pow(y,2) + Math.pow(z,2) );
 						// Fill histograms
-						h1_meantime_fadc.fill(meantimeFadc);
+						h1_meantime_fadc.fill(meantimeFadc_corr);
 						h1_meantime_tdc.fill(meantimeTdc);
 						h1_tdiff_fadc.fill(difftimeFadc);
 						h1_tdiff_tdc.fill(difftimeTdc);
 						h1_adcL.fill(adcLcorr);
 						h1_adcR.fill(adcRcorr);
-						h1_ToF_fadc.fill(meantimeFadc-t_vtx-40);
+						h1_ToF_fadc.fill(meantimeFadc_corr-t_vtx);
 						h1_ToF_tdc.fill(meantimeTdc-t_vtx);
 
 						if( Math.abs( meantimeFadc-t_vtx-40 - 10 ) < 5 ){
