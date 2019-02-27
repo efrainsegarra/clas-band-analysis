@@ -402,7 +402,7 @@ public class e_epPipPim_n {
 					}
 					// ----------------------------------------------------------------------
 				}
-				if(nProtons==1&&nPip==1&&nPim==1) {
+				if(nProtons==1&&nPip==1&&nPim==1&&(nParticles==4)) {
 
 					double beta_p  = bank_particle.getNode("beta").getFloat(tmp_fast_p_idx  );	// proton candidate beta (v/c)
 					double ppx     = bank_particle.getNode("px"  ).getFloat(tmp_fast_p_idx  );	// proton candidate momentum x-component [GeV]
